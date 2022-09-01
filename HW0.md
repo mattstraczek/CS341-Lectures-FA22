@@ -222,3 +222,158 @@ These are general tips for compiling and developing using a compiler and git. So
 - Find, in your opinion, the best and worst C code on the web and post the link to Ed.
 - Write a short C program with a deliberate subtle C bug and post it on Ed to see if others can spot your bug.
 - Do you have any cool/disastrous system programming bugs you've heard about? Feel free to share with your peers and the course staff on Ed.
+
+************************HW 0 ANSWERS*****************************
+
+Chapter 1:
+1: #include <stdio.h>
+
+int main() {
+	write(1, "Hi! My name is Matt", 19);
+	return 0;
+}
+
+2: #include <stdio.h>
+
+void write_triangle(int n);
+
+int main() {
+	write_triangle(3);
+	return 0;
+}
+
+void write_triangle(int n) {
+	int i;
+	for(i = 1; i < n + 1; i++) {
+		int j;
+		for (j = 0; j < i; j++) {
+			write(1, "*", 1);
+		}
+		write(1, "\n", 1);
+	}
+}
+
+3: #include <stdio.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+
+
+int main() {
+	mode_t mode = S_IRUSR | S_IWUSR;
+	int filedes = open("hello_world.txt", O_CREAT | O_TRUNC | O_RDWR, mode);
+	write(filedes, "Hi! My name is Matt", 19);
+	close(filedes);
+	return 0;
+}
+
+4: 
+int main() {
+	mode_t mode = S_IRUSR | S_IWUSR;
+	int filedes = open("hello_world.txt", O_CREAT | O_TRUNC | O_RDWR, mode);
+	dprintf(filedes, "Hi! My name is Matt", 19);
+	close(filedes);
+	return 0;
+}
+
+5: write is lowlevel, printf can print integers
+
+Chapter 2:
+1: There are atleast 8 bits in a byte
+2: There is 1 byte in a char
+3: int: 4, double: 8, float: 4, long: 4, long long: 8
+4: 0x7fbd9d50
+5: data[3] == data + 3
+6: Strings in C that are initialized in this way have their memory address noted as “read only,” so trying to write to that memory address produces a segmentation fault.
+7: 12
+8: 5
+9: X = “ab”
+10: Y = 1
+
+Chapter 3:
+1: One way is to check the value of argc. Another way is to loop through every arg element in argv until reaching the end of the arguments, or null.
+2: argv[0] represents the first command, or the running of the exec file
+3: On top of the stack
+4: If the machine is 32 bit, sizeof(ptr) = 4, and if the machine is 64 bit, sizeof(ptr) = 8; sizeof(array) = 6. This is due to the ptr needing 4 bytes of storage to hold the value for its memory address, and array needing 6 bytes of storage, using one byte for each char (including \0).
+5: A stack data structure manages the lifetime of automatic variables.
+
+Chapter 4:
+1: If you want to use data after the lifetime of the function that it was used in ends, you can store that data on the heap, keeping track of it with a pointer. This heap allocation can be done with the malloc() function, which takes in a size in bytes parameter to determine the desired size of allocation.
+2: Stack memory is allocated for function calls and local variables, whereas the heap can store malloc’d variables that exist beyond the lifetimes of functions, but such variables must have their memory eventually free’d.
+3: Static
+4: In a good C program, for every malloc, there is a free.
+5: If the program has used up all of the heap memory, malloc can fail.
+6: time returns a time_t type, whereas ctime returns a more readable string representation of this time_t type. Another difference includes the fact that ctime returns static data, which means upon every time it is called, previous pointers have their respective data overwritten, whereas time does not have this attribute.
+7: Attempting to free the same space of memory twice can confuse the program, since that area of memory may be used by the program to note whether it is actually free or not after the first free, in a way “bookkeeping.”
+8: Since the memory for ptr has already been free’d, the respective data used in the printf function is no longer valid to be used.
+9: One can avoid these previous two mistakes by programming without “dangling pointers,” or pointers that point to invalid memory. This can be accomplished by setting a respective pointer to NULL immediately after it is free’d.
+10: 
+typedef struct Person person_t;
+struct Person {
+	char* name;
+	int age;
+	person_t* friends[20];
+};
+11:
+person_t* agent_smith = (person_t*) malloc(sizeof(person_t));
+person_t* sonny_moore = (person_t*) malloc(sizeof(person_t));
+	
+agent_smith->age = 128;
+sonny_moore->age = 256;
+
+agent_smith->name = “Agent Smith”;
+sonny_moore->name = “Sonny Moore”;
+	
+agent_smith->friends[0] = sonny_moore;
+sonny_moore->friends[0] = agent_smith;;
+	
+free(agent_smith);
+free(sonny_moore);
+
+12:
+person_t* create(char* name, int age) {
+	person_t* person = (person_t*) malloc(sizeof(person_t));
+	person->age = age;
+	person->name = strdup(name);
+	for (int i = 0; i < 20; i++) {
+		person->friends[i] = NULL;
+	}
+	return person;
+
+13: 
+void destroy(person_t* person) {
+	free(person);
+}
+Chapter 5:
+1: getchar(), putchar()
+2: gets() can accept input that is too long for the memory that it is responsible for, consequently overwriting other data.
+3: 
+char* data = “Hello 5 World”;
+char first_str[20];
+int first_int;
+char second_str[20];
+sscanf(data, “%s %d %s”, first_str, &first_int, second_str);
+printf("%s %d %s", first_str, first_int, second_str);
+4: Define _GNU_SOURCE
+5: 
+char* buffer = NULL;
+size_t capacity = 0;
+ssize_t result = getline( &buffer, &capacity, stdin);
+if (result > 0 && buffer[result-1] == ‘\n’) {
+	Buffer[result-1] = 0;
+}
+printf(“%d : %s\n”, result, buffer);
+free(buffer);
+
+C Development
+
+1: -g flag
+2: You must mark all objects up to date with make -t.
+3: tabs
+4: “git commit” essentially saves the current staged changes.SHA stands for Simple Hashing Algorithm, where all the changes in the commit are combined to generate a 40 character string as a sort of “identity” for the committed changes.
+5: git log shows a list of all commits made to a repository
+6: git status shows you which commits have or haven’t been staged. It doesn’t show you which files are being ignored however, which can be modified in the .gitignore file.
+7: git push updates your project’s repository by “pushing” all of the committed changes to it. A commit message like this is insufficient because it is very ambiguous, and can lead to a lot of confusion later on in development.
+8: This error means that git is unable to commit your changes. The most common ways of dealing with this is to either git pull to make sure your version is up to date, or to verify that you are committing to the correct project.
+
+
